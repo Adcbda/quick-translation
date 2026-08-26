@@ -93,7 +93,7 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 @keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
 .card, .translation-panel, .settings-card { background: rgba(255,255,255,.94); border: 1px solid rgba(228,230,238,.95); box-shadow: var(--shadow); }
-.language-bar { min-height: 67px; border-radius: 17px; display: grid; grid-template-columns: minmax(150px,1fr) 48px minmax(150px,1fr) auto; align-items: center; padding: 9px 16px; margin-bottom: 16px; }
+.language-bar { min-height: 67px; border-radius: 17px; display: grid; grid-template-columns: minmax(120px,1fr) 48px minmax(120px,1fr) auto auto; align-items: center; padding: 9px 16px; margin-bottom: 16px; }
 .language-select { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .language-select:nth-of-type(2) { padding-left: 10px; }
 .language-select select { border: 0; background: transparent; color: #293148; font-weight: 650; outline: none; width: 100%; height: 38px; cursor: pointer; }
@@ -109,6 +109,13 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 .engine-badge strong { overflow:hidden;text-overflow:ellipsis; }
 .engine-badge.llm { background:#f1efff;border-color:#e3dfff; }
 .engine-badge.llm span { background:#725fdf; box-shadow:0 0 0 3px rgba(114,95,223,.12); }
+.minimal-mode-toggle { display:flex;align-items:center;gap:8px;margin-left:12px;color:#737a8c;font-size:10px;font-weight:700;white-space:nowrap;cursor:pointer;user-select:none; }
+.minimal-mode-toggle input { position:absolute;opacity:0;pointer-events:none; }
+.minimal-mode-toggle i { width:34px;height:20px;border-radius:12px;background:#d9dbe2;position:relative;transition:.2s;box-shadow:inset 0 0 0 1px rgba(60,64,80,.04); }
+.minimal-mode-toggle i::after { content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;border-radius:50%;background:white;box-shadow:0 2px 5px rgba(0,0,0,.18);transition:.2s; }
+.minimal-mode-toggle input:checked+i { background:#6e5ddd; }
+.minimal-mode-toggle input:checked+i::after { transform:translateX(14px); }
+.minimal-mode-toggle input:focus-visible+i { outline:3px solid rgba(103,87,223,.18);outline-offset:2px; }
 
 .translator-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:min(47vh,360px); }
 .translation-panel { border-radius:18px;display:flex;flex-direction:column;overflow:hidden;min-width:0; }
@@ -154,6 +161,28 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 .button-loading i,.mini-spinner { width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .translate-actions p { margin:10px 0 0;color:#a5a9b6;font-size:9px;max-width:520px;text-align:center; }
+
+#app.minimal-mode { grid-template-columns:minmax(0,1fr); }
+#app.minimal-mode .sidebar,
+#app.minimal-mode .topbar,
+#app.minimal-mode .global-download-status { display:none!important; }
+#app.minimal-mode .workspace { padding:14px;overflow:hidden; }
+#app.minimal-mode .language-bar { min-height:50px;grid-template-columns:minmax(110px,1fr) 42px minmax(110px,1fr) auto;padding:4px 10px;margin-bottom:10px;border-radius:12px;box-shadow:0 5px 18px rgba(46,48,75,.055); }
+#app.minimal-mode .engine-badge,
+#app.minimal-mode .flag-dot { display:none; }
+#app.minimal-mode .language-select:nth-of-type(2) { padding-left:0; }
+#app.minimal-mode .language-select select { height:36px;font-size:12px; }
+#app.minimal-mode .swap-button { width:34px;height:34px;border-radius:9px; }
+#app.minimal-mode .minimal-mode-toggle { margin-left:10px; }
+#app.minimal-mode .translator-grid { gap:10px;height:calc(100vh - 140px);min-height:0; }
+#app.minimal-mode .translation-panel { border-radius:12px;box-shadow:0 5px 18px rgba(46,48,75,.055); }
+#app.minimal-mode .panel-head,
+#app.minimal-mode .panel-foot { display:none; }
+#app.minimal-mode #sourceText,
+#app.minimal-mode .result-content { min-height:0;padding:14px 16px;font-size:14px;line-height:1.65; }
+#app.minimal-mode .translate-actions { margin-top:10px; }
+#app.minimal-mode .translate-actions p { display:none; }
+#app.minimal-mode .primary-button { min-width:168px;height:42px;border-radius:11px;box-shadow:0 6px 16px rgba(92,72,204,.2); }
 
 .section-heading { display:flex;align-items:flex-start;justify-content:space-between;margin:2px 0 20px; }
 .section-heading h2,.settings-card h2 { font-size:16px;margin:0 0 7px;letter-spacing:-.2px; }

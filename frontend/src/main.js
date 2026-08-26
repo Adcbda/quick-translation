@@ -86,6 +86,7 @@ function applyConfig() {
   $("#doubleTapMs").value = cfg.doubleTapMs || 420;
   $("#doubleTapValue").textContent = `${cfg.doubleTapMs || 420} ms`;
   $("#topmostButton").classList.toggle("active", Boolean(cfg.alwaysOnTop));
+  applyMinimalMode();
   $$("#providerControl button").forEach((button) => button.classList.toggle("active", button.dataset.provider === cfg.provider));
   $("#llmSettings").classList.toggle("muted", cfg.provider !== "llm");
   updateEngineBadge();
@@ -125,6 +126,7 @@ function wireInteractions() {
   $("#swapLanguages").addEventListener("click", swapLanguages);
   $("#sourceLanguage").addEventListener("change", rememberLanguages);
   $("#targetLanguage").addEventListener("change", rememberLanguages);
+  $("#minimalMode").addEventListener("change", toggleMinimalMode);
   $("#topmostButton").addEventListener("click", toggleTopmost);
   $("#saveSettings").addEventListener("click", saveSettings);
   $("#prepareRuntime").addEventListener("click", prepareRuntime);
@@ -135,6 +137,29 @@ function wireInteractions() {
   });
   $$("#providerControl button").forEach((button) => button.addEventListener("click", () => selectProvider(button.dataset.provider)));
   $("#doubleTapMs").addEventListener("input", (event) => $("#doubleTapValue").textContent = `${event.target.value} ms`);
+}
+
+function applyMinimalMode() {
+  const enabled = Boolean(state.config?.minimalMode);
+  $("#app").classList.toggle("minimal-mode", enabled);
+  $("#minimalMode").checked = enabled;
+}
+
+async function toggleMinimalMode(event) {
+  if (!state.config) {
+    $("#app").classList.toggle("minimal-mode", event.currentTarget.checked);
+    return;
+  }
+  const previous = Boolean(state.config.minimalMode);
+  state.config.minimalMode = event.currentTarget.checked;
+  applyMinimalMode();
+  try {
+    await backend().SaveConfig(state.config);
+  } catch (error) {
+    state.config.minimalMode = previous;
+    applyMinimalMode();
+    toast(errorMessage(error), "error");
+  }
 }
 
 function wireRuntimeEvents() {

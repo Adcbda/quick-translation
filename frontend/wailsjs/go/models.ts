@@ -8,6 +8,7 @@ export namespace main {
 	    llmApiKey: string;
 	    shortcutEnabled: boolean;
 	    alwaysOnTop: boolean;
+	    minimalMode: boolean;
 	    sourceLanguage: string;
 	    targetLanguage: string;
 	    doubleTapMs: number;
@@ -25,6 +26,7 @@ export namespace main {
 	        this.llmApiKey = source["llmApiKey"];
 	        this.shortcutEnabled = source["shortcutEnabled"];
 	        this.alwaysOnTop = source["alwaysOnTop"];
+	        this.minimalMode = source["minimalMode"];
 	        this.sourceLanguage = source["sourceLanguage"];
 	        this.targetLanguage = source["targetLanguage"];
 	        this.doubleTapMs = source["doubleTapMs"];

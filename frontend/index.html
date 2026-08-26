@@ -76,6 +76,11 @@
               <select id="targetLanguage" aria-label="目标语言"></select>
             </div>
             <div class="engine-badge" id="engineBadge"><span></span><strong>本地模型</strong></div>
+            <label class="minimal-mode-toggle" title="仅保留翻译所需的核心控件">
+              <span>极简模式</span>
+              <input id="minimalMode" type="checkbox" />
+              <i aria-hidden="true"></i>
+            </label>
           </div>
 
           <div class="translator-grid">
@@ -86,7 +91,7 @@
                   <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg>
                 </button>
               </div>
-              <textarea id="sourceText" maxlength="12000" placeholder="输入或粘贴要翻译的文本…"></textarea>
+              <textarea id="sourceText" maxlength="12000" placeholder="输入或粘贴要翻译的文本…" aria-label="原文"></textarea>
               <div class="panel-foot"><span id="characterCount">0 / 12,000</span><span class="shortcut-inline"><kbd>Ctrl</kbd><kbd>Enter</kbd> 翻译</span></div>
             </article>
 
@@ -98,7 +103,7 @@
                   <span>复制</span>
                 </button>
               </div>
-              <div class="result-content empty" id="resultText">
+              <div class="result-content empty" id="resultText" role="region" aria-label="译文" aria-live="polite">
                 <div class="result-placeholder">
                   <span class="placeholder-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 4V5Z"/><path d="M8 9h8M8 13h5"/></svg></span>
                   <strong>译文将在这里显示</strong>

@@ -22,6 +22,7 @@ type Config struct {
 	LLMAPIKey       string `json:"llmApiKey"`
 	ShortcutEnabled bool   `json:"shortcutEnabled"`
 	AlwaysOnTop     bool   `json:"alwaysOnTop"`
+	MinimalMode     bool   `json:"minimalMode"`
 	SourceLanguage  string `json:"sourceLanguage"`
 	TargetLanguage  string `json:"targetLanguage"`
 	DoubleTapMS     int    `json:"doubleTapMs"`
