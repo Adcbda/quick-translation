@@ -6,12 +6,11 @@ export namespace main {
 	    llmBaseUrl: string;
 	    llmModel: string;
 	    llmApiKey: string;
-	    shortcutEnabled: boolean;
+	    clipboardEnabled: boolean;
 	    alwaysOnTop: boolean;
 	    minimalMode: boolean;
 	    sourceLanguage: string;
 	    targetLanguage: string;
-	    doubleTapMs: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -24,12 +23,11 @@ export namespace main {
 	        this.llmBaseUrl = source["llmBaseUrl"];
 	        this.llmModel = source["llmModel"];
 	        this.llmApiKey = source["llmApiKey"];
-	        this.shortcutEnabled = source["shortcutEnabled"];
+	        this.clipboardEnabled = source["clipboardEnabled"];
 	        this.alwaysOnTop = source["alwaysOnTop"];
 	        this.minimalMode = source["minimalMode"];
 	        this.sourceLanguage = source["sourceLanguage"];
 	        this.targetLanguage = source["targetLanguage"];
-	        this.doubleTapMs = source["doubleTapMs"];
 	    }
 	}
 	export class ModelDownloadStatus {
@@ -128,4 +126,3 @@ export namespace main {
 	}
 
 }
-

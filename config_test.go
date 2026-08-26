@@ -8,7 +8,7 @@ import (
 )
 
 func TestConfigNormalize(t *testing.T) {
-	cfg := Config{Provider: "unknown", DoubleTapMS: 100}
+	cfg := Config{Provider: "unknown"}
 	cfg.normalize()
 	if cfg.Provider != "local" {
 		t.Fatalf("provider = %q, want local", cfg.Provider)
@@ -19,8 +19,15 @@ func TestConfigNormalize(t *testing.T) {
 	if cfg.SourceLanguage != "en" || cfg.TargetLanguage != "zh" {
 		t.Fatalf("languages = %s -> %s", cfg.SourceLanguage, cfg.TargetLanguage)
 	}
-	if cfg.DoubleTapMS != 420 {
-		t.Fatalf("double tap = %d", cfg.DoubleTapMS)
+}
+
+func TestConfigMigratesLegacyShortcutSetting(t *testing.T) {
+	var cfg Config
+	if err := json.Unmarshal([]byte(`{"shortcutEnabled":false}`), &cfg); err != nil {
+		t.Fatalf("decode legacy config: %v", err)
+	}
+	if cfg.ClipboardEnabled {
+		t.Fatal("legacy disabled shortcut should keep clipboard monitoring disabled")
 	}
 }
 

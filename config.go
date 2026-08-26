@@ -15,28 +15,49 @@ const (
 )
 
 type Config struct {
-	Provider        string `json:"provider"`
-	LocalModel      string `json:"localModel"`
-	LLMBaseURL      string `json:"llmBaseUrl"`
-	LLMModel        string `json:"llmModel"`
-	LLMAPIKey       string `json:"llmApiKey"`
-	ShortcutEnabled bool   `json:"shortcutEnabled"`
-	AlwaysOnTop     bool   `json:"alwaysOnTop"`
-	MinimalMode     bool   `json:"minimalMode"`
-	SourceLanguage  string `json:"sourceLanguage"`
-	TargetLanguage  string `json:"targetLanguage"`
-	DoubleTapMS     int    `json:"doubleTapMs"`
+	Provider         string `json:"provider"`
+	LocalModel       string `json:"localModel"`
+	LLMBaseURL       string `json:"llmBaseUrl"`
+	LLMModel         string `json:"llmModel"`
+	LLMAPIKey        string `json:"llmApiKey"`
+	ClipboardEnabled bool   `json:"clipboardEnabled"`
+	AlwaysOnTop      bool   `json:"alwaysOnTop"`
+	MinimalMode      bool   `json:"minimalMode"`
+	SourceLanguage   string `json:"sourceLanguage"`
+	TargetLanguage   string `json:"targetLanguage"`
 }
 
 func defaultConfig() Config {
 	return Config{
-		Provider:        "local",
-		LocalModel:      defaultLocalModel,
-		ShortcutEnabled: true,
-		SourceLanguage:  "en",
-		TargetLanguage:  "zh",
-		DoubleTapMS:     420,
+		Provider:         "local",
+		LocalModel:       defaultLocalModel,
+		ClipboardEnabled: true,
+		SourceLanguage:   "en",
+		TargetLanguage:   "zh",
 	}
+}
+
+func (c *Config) UnmarshalJSON(data []byte) error {
+	type configAlias Config
+	decoded := configAlias(defaultConfig())
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+
+	// Preserve the old shortcut switch when upgrading from the double-Ctrl build.
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
+	}
+	if _, hasClipboardSetting := fields["clipboardEnabled"]; !hasClipboardSetting {
+		if legacy, ok := fields["shortcutEnabled"]; ok {
+			if err := json.Unmarshal(legacy, &decoded.ClipboardEnabled); err != nil {
+				return err
+			}
+		}
+	}
+	*c = Config(decoded)
+	return nil
 }
 
 type configStore struct {
@@ -79,9 +100,6 @@ func (c *Config) normalize() {
 	}
 	if c.TargetLanguage == "" {
 		c.TargetLanguage = "zh"
-	}
-	if c.DoubleTapMS < 250 || c.DoubleTapMS > 900 {
-		c.DoubleTapMS = 420
 	}
 	if c.LLMBaseURL != "" {
 		c.LLMBaseURL = strings.TrimRight(strings.TrimSpace(c.LLMBaseURL), "/")

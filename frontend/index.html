@@ -33,7 +33,7 @@
         </nav>
 
         <div class="sidebar-foot">
-          <div class="shortcut-hint"><span class="pulse-dot"></span><span>双击</span><kbd>Ctrl</kbd><span>快速翻译</span></div>
+          <div class="shortcut-hint"><span class="pulse-dot"></span><span>复制文本自动翻译</span></div>
           <div class="version">Local-first · v1.0.0</div>
         </div>
       </aside>
@@ -166,11 +166,10 @@
 
               <section class="settings-card">
                 <div class="settings-row">
-                  <div class="settings-title compact"><span class="settings-icon coral"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 8h6M9 12h6M9 16h3"/></svg></span><div><h2>快捷翻译</h2><p>双击 Ctrl，读取当前选中文本并自动翻译</p></div></div>
-                  <label class="switch"><input id="shortcutEnabled" type="checkbox" /><span></span></label>
+                  <div class="settings-title compact"><span class="settings-icon coral"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 8h6M9 12h6M9 16h3"/></svg></span><div><h2>剪贴板自动翻译</h2><p>复制文本后，自动读取剪贴板并开始翻译</p></div></div>
+                  <label class="switch"><input id="clipboardEnabled" type="checkbox" /><span></span></label>
                 </div>
-                <div class="shortcut-demo"><span>在任意应用中选中文字</span><strong>→</strong><kbd>Ctrl</kbd><span>+</span><kbd>Ctrl</kbd><strong>→</strong><span>自动翻译</span></div>
-                <label class="range-row"><span>双击间隔</span><input id="doubleTapMs" type="range" min="280" max="700" step="20" /><output id="doubleTapValue">420 ms</output></label>
+                <div class="shortcut-demo"><span>在任意应用中复制文字</span><strong>→</strong><kbd>Ctrl</kbd><span>+</span><kbd>C</kbd><strong>→</strong><span>自动翻译</span></div>
               </section>
             </div>
 

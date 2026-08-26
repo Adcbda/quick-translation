@@ -6,6 +6,10 @@ export function DownloadModel(arg1) {
   return window['go']['main']['App']['DownloadModel'](arg1);
 }
 
+export function CopyText(arg1) {
+  return window['go']['main']['App']['CopyText'](arg1);
+}
+
 export function GetConfig() {
   return window['go']['main']['App']['GetConfig']();
 }

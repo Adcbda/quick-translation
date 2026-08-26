@@ -249,7 +249,7 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 .form-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
 .form-grid label { display:flex;flex-direction:column;gap:6px; }
 .form-grid label.full { grid-column:1/-1; }
-.form-grid label>span,.range-row>span { font-size:9px;color:#686f81;font-weight:700; }
+.form-grid label>span { font-size:9px;color:#686f81;font-weight:700; }
 .form-grid input { width:100%;height:38px;border:1px solid #e1e2e9;border-radius:9px;padding:0 11px;color:#363d50;outline:0;font-size:10px;background:#fdfdfe;transition:.18s; }
 .form-grid input:focus { border-color:#a9a0e6;box-shadow:0 0 0 3px rgba(105,87,221,.08);background:white; }
 .password-field { position:relative; }
@@ -266,9 +266,6 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 .shortcut-demo { display:flex;align-items:center;justify-content:center;gap:8px;background:#f8f8fb;border:1px dashed #dedee7;border-radius:10px;padding:9px;margin-top:14px;color:#8d92a0;font-size:9px; }
 .shortcut-demo strong { color:#b5b8c2; }
 .shortcut-demo kbd { font-size:9px;padding:3px 7px; }
-.range-row { display:grid;grid-template-columns:72px 1fr 58px;align-items:center;gap:10px;margin-top:13px; }
-.range-row input { accent-color:var(--violet);height:3px; }
-.range-row output { font-size:9px;color:#777c8c;background:#f4f3f9;border-radius:7px;text-align:center;padding:4px; }
 .settings-aside { display:flex;flex-direction:column;gap:11px; }
 .tip-card { background:linear-gradient(150deg,#6f60db,#4e42b7);border-radius:16px;padding:19px;color:white;box-shadow:0 12px 28px rgba(82,67,184,.2); }
 .tip-card>span { width:35px;height:35px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.14); }

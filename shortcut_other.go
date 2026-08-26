@@ -4,14 +4,14 @@ package main
 
 import "errors"
 
-type shortcutListener struct{}
+type clipboardListener struct{}
 
-func newShortcutListener(int, func()) (*shortcutListener, error) {
-	return nil, errors.New("双击 Ctrl 快捷取词当前仅支持 Windows")
+func newClipboardListener(func(string)) (*clipboardListener, error) {
+	return nil, errors.New("剪贴板自动翻译当前仅支持 Windows")
 }
 
-func (s *shortcutListener) Stop() {}
-
-func captureSelectedText() (string, error) {
-	return "", errors.New("快捷取词当前仅支持 Windows")
+func (s *clipboardListener) SetText(string) error {
+	return errors.New("剪贴板监听当前仅支持 Windows")
 }
+
+func (s *clipboardListener) Stop() {}

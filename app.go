@@ -55,7 +55,7 @@ type App struct {
 	ctx            context.Context
 	store          *configStore
 	local          *localModelService
-	shortcut       *shortcutListener
+	clipboard      *clipboardListener
 	mu             sync.Mutex
 	downloadMu     sync.RWMutex
 	downloadStatus ModelDownloadStatus
@@ -100,8 +100,8 @@ func (a *App) startup(ctx context.Context) {
 	}
 	cfg := a.store.get()
 	runtime.WindowSetAlwaysOnTop(ctx, cfg.AlwaysOnTop)
-	if cfg.ShortcutEnabled {
-		a.startShortcut(cfg.DoubleTapMS)
+	if cfg.ClipboardEnabled {
+		a.startClipboardMonitor()
 	}
 }
 
@@ -109,9 +109,9 @@ func (a *App) shutdown(context.Context) {
 	log.Printf("application shutting down")
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.shortcut != nil {
-		a.shortcut.Stop()
-		a.shortcut = nil
+	if a.clipboard != nil {
+		a.clipboard.Stop()
+		a.clipboard = nil
 	}
 	if a.local != nil {
 		a.local.Close()
@@ -146,17 +146,17 @@ func (a *App) SaveConfig(cfg Config) error {
 		return err
 	}
 	cfg = a.store.get()
-	log.Printf("configuration saved; provider=%s local_model=%s shortcut=%t always_on_top=%t", cfg.Provider, cfg.LocalModel, cfg.ShortcutEnabled, cfg.AlwaysOnTop)
+	log.Printf("configuration saved; provider=%s local_model=%s clipboard=%t always_on_top=%t", cfg.Provider, cfg.LocalModel, cfg.ClipboardEnabled, cfg.AlwaysOnTop)
 	if a.ctx != nil {
 		runtime.WindowSetAlwaysOnTop(a.ctx, cfg.AlwaysOnTop)
 	}
 	if previous.LocalModel != cfg.LocalModel && a.local != nil {
 		a.local.Close()
 	}
-	if previous.ShortcutEnabled != cfg.ShortcutEnabled || previous.DoubleTapMS != cfg.DoubleTapMS {
-		a.stopShortcut()
-		if cfg.ShortcutEnabled {
-			a.startShortcut(cfg.DoubleTapMS)
+	if previous.ClipboardEnabled != cfg.ClipboardEnabled {
+		a.stopClipboardMonitor()
+		if cfg.ClipboardEnabled {
+			a.startClipboardMonitor()
 		}
 	}
 	return nil
@@ -353,35 +353,52 @@ func (a *App) OpenDataDirectory() error {
 	return nil
 }
 
-func (a *App) startShortcut(doubleTapMS int) {
+func (a *App) CopyText(text string) error {
+	if text == "" {
+		return errors.New("没有可复制的文本")
+	}
+	a.mu.Lock()
+	if a.clipboard != nil {
+		err := a.clipboard.SetText(text)
+		a.mu.Unlock()
+		return err
+	}
+	a.mu.Unlock()
+	if a.ctx == nil {
+		return errors.New("窗口尚未就绪")
+	}
+	return runtime.ClipboardSetText(a.ctx, text)
+}
+
+func (a *App) startClipboardMonitor() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.shortcut != nil {
+	if a.clipboard != nil {
 		return
 	}
-	listener, err := newShortcutListener(doubleTapMS, func() {
-		text, captureErr := captureSelectedText()
-		if captureErr != nil || strings.TrimSpace(text) == "" || a.ctx == nil {
+	listener, err := newClipboardListener(func(text string) {
+		if strings.TrimSpace(text) == "" || a.ctx == nil {
 			return
 		}
+		log.Printf("clipboard text detected; characters=%d", len([]rune(strings.TrimSpace(text))))
 		runtime.WindowShow(a.ctx)
 		runtime.WindowUnminimise(a.ctx)
-		runtime.EventsEmit(a.ctx, "quick-translate", text)
+		runtime.EventsEmit(a.ctx, "clipboard-translate", text)
 	})
 	if err != nil {
 		if a.ctx != nil {
-			runtime.EventsEmit(a.ctx, "shortcut-error", err.Error())
+			runtime.EventsEmit(a.ctx, "clipboard-error", err.Error())
 		}
 		return
 	}
-	a.shortcut = listener
+	a.clipboard = listener
 }
 
-func (a *App) stopShortcut() {
+func (a *App) stopClipboardMonitor() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.shortcut != nil {
-		a.shortcut.Stop()
-		a.shortcut = nil
+	if a.clipboard != nil {
+		a.clipboard.Stop()
+		a.clipboard = nil
 	}
 }

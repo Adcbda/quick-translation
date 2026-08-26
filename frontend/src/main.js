@@ -13,6 +13,7 @@ const state = {
   config: null,
   models: [],
   translating: false,
+  queuedClipboardText: "",
   result: "",
   modelDownload: { model: "", status: "idle", message: "", progress: -1 },
 };
@@ -82,9 +83,7 @@ function applyConfig() {
   $("#llmBaseUrl").value = cfg.llmBaseUrl || "";
   $("#llmModel").value = cfg.llmModel || "";
   $("#llmApiKey").value = cfg.llmApiKey || "";
-  $("#shortcutEnabled").checked = Boolean(cfg.shortcutEnabled);
-  $("#doubleTapMs").value = cfg.doubleTapMs || 420;
-  $("#doubleTapValue").textContent = `${cfg.doubleTapMs || 420} ms`;
+  $("#clipboardEnabled").checked = Boolean(cfg.clipboardEnabled);
   $("#topmostButton").classList.toggle("active", Boolean(cfg.alwaysOnTop));
   applyMinimalMode();
   $$("#providerControl button").forEach((button) => button.classList.toggle("active", button.dataset.provider === cfg.provider));
@@ -106,7 +105,7 @@ function updateEngineBadge() {
 }
 
 function updateShortcutHint() {
-  const enabled = Boolean(state.config?.shortcutEnabled);
+  const enabled = Boolean(state.config?.clipboardEnabled);
   $(".shortcut-hint").classList.toggle("disabled", !enabled);
   $(".pulse-dot").classList.toggle("off", !enabled);
 }
@@ -136,7 +135,6 @@ function wireInteractions() {
     input.type = input.type === "password" ? "text" : "password";
   });
   $$("#providerControl button").forEach((button) => button.addEventListener("click", () => selectProvider(button.dataset.provider)));
-  $("#doubleTapMs").addEventListener("input", (event) => $("#doubleTapValue").textContent = `${event.target.value} ms`);
 }
 
 function applyMinimalMode() {
@@ -165,19 +163,29 @@ async function toggleMinimalMode(event) {
 function wireRuntimeEvents() {
   const eventsOn = window.runtime?.EventsOn;
   if (!eventsOn) return;
-  eventsOn("quick-translate", (text) => {
-    showView("translate");
-    $("#sourceText").value = text;
-    updateCharacterCount();
-    translate();
-  });
-  eventsOn("shortcut-error", (message) => toast(message, "error", 6000));
+  eventsOn("clipboard-translate", translateClipboardText);
+  eventsOn("clipboard-error", (message) => toast(message, "error", 6000));
   eventsOn("runtime-status", (message) => {
     $("#runtimeMessage").textContent = message;
   });
   eventsOn("model-download-status", (payload) => {
     updateModelDownloadStatus(payload);
   });
+}
+
+function translateClipboardText(value) {
+  const text = String(value || "").trim();
+  if (!text) return;
+  showView("translate");
+  if (state.translating) {
+    state.queuedClipboardText = text;
+    $("#translationStatus").textContent = "已收到新的剪贴板文本，将在当前翻译后继续…";
+    return;
+  }
+  state.queuedClipboardText = "";
+  $("#sourceText").value = text;
+  updateCharacterCount();
+  translate();
 }
 
 async function refreshModelDownloadStatus() {
@@ -344,13 +352,18 @@ async function translate() {
     state.translating = false;
     $("#translateButton").classList.remove("loading");
     $("#translateButton").disabled = false;
+    if (state.queuedClipboardText) {
+      const nextText = state.queuedClipboardText;
+      state.queuedClipboardText = "";
+      setTimeout(() => translateClipboardText(nextText), 0);
+    }
   }
 }
 
 async function copyResult() {
   if (!state.result) return;
   try {
-    await navigator.clipboard.writeText(state.result);
+    await backend().CopyText(state.result);
     const label = $("#copyResult span");
     label.textContent = "已复制";
     setTimeout(() => label.textContent = "复制", 1400);
@@ -479,8 +492,7 @@ async function saveSettings() {
   state.config.llmBaseUrl = $("#llmBaseUrl").value.trim();
   state.config.llmModel = $("#llmModel").value.trim();
   state.config.llmApiKey = $("#llmApiKey").value.trim();
-  state.config.shortcutEnabled = $("#shortcutEnabled").checked;
-  state.config.doubleTapMs = Number($("#doubleTapMs").value);
+  state.config.clipboardEnabled = $("#clipboardEnabled").checked;
   state.config.sourceLanguage = $("#sourceLanguage").value;
   state.config.targetLanguage = $("#targetLanguage").value;
   try {
