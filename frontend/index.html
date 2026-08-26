@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f6fa" />
+    <title>Quick Translation</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside class="sidebar">
+        <div class="brand" aria-label="Quick Translation">
+          <span class="brand-mark">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.6 4h8.7l-1.1 3H5.6A2.6 2.6 0 0 0 3 9.6v5.8A2.6 2.6 0 0 0 5.6 18H9l3 3v-3h1.5l1.2 3h3.2l-5-13h-3.3L6.1 17H5.6A1.6 1.6 0 0 1 4 15.4V9.6A1.6 1.6 0 0 1 5.6 8h7.2l-.5 1.3H6.8v2.2h4.4A7.2 7.2 0 0 1 9.8 14a7.7 7.7 0 0 1-1.3-1.7l-1.9 1a9.4 9.4 0 0 0 1.5 2 9.2 9.2 0 0 1-2 1l1.1 1.9a10.9 10.9 0 0 0 2.6-1.4c.6.4 1.2.8 1.9 1.1l.8-2.1c-.4-.2-.8-.4-1.1-.6a9.3 9.3 0 0 0 2-3.7h.9V9.3h-.1L16.2 4H19V2h-6.7l-.7-2H8.7l.7 2H5.6A4.6 4.6 0 0 0 1 6.6v8.8A4.6 4.6 0 0 0 5.6 20H8v4h2l4-4h.3l.9 2.4h2.2l.7 1.6H22L14.3 4H5.6Zm9.9 12 1.4-3.8 1.4 3.8h-2.8Z"/></svg>
+          </span>
+          <span class="brand-copy"><strong>Quick</strong><small>TRANSLATION</small></span>
+        </div>
+
+        <nav class="main-nav">
+          <button class="nav-item active" data-view="translate">
+            <svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg>
+            <span>翻译</span>
+          </button>
+          <button class="nav-item" data-view="models">
+            <svg viewBox="0 0 24 24"><path d="m12 3 8 4.5-8 4.5-8-4.5L12 3Z"/><path d="m4 12 8 4.5 8-4.5M4 16.5l8 4.5 8-4.5"/></svg>
+            <span>模型管理</span>
+          </button>
+          <button class="nav-item" data-view="settings">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 0 0 .4 2l.1.1-2.8 2.8-.1-.1a1.8 1.8 0 0 0-2-.4 1.8 1.8 0 0 0-1.1 1.7V21h-4v-.1A1.8 1.8 0 0 0 8.8 19a1.8 1.8 0 0 0-2 .4l-.1.1-2.8-2.8.1-.1a1.8 1.8 0 0 0 .4-2A1.8 1.8 0 0 0 2.7 13H2V9h.7a1.8 1.8 0 0 0 1.7-1.1 1.8 1.8 0 0 0-.4-2l-.1-.1L6.7 3l.1.1a1.8 1.8 0 0 0 2 .4A1.8 1.8 0 0 0 9.9 2h4a1.8 1.8 0 0 0 1.1 1.5 1.8 1.8 0 0 0 2-.4l.1-.1 2.8 2.8-.1.1a1.8 1.8 0 0 0-.4 2A1.8 1.8 0 0 0 21.1 9h.9v4h-.9a1.8 1.8 0 0 0-1.7 2Z"/></svg>
+            <span>设置</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-foot">
+          <div class="shortcut-hint"><span class="pulse-dot"></span><span>双击</span><kbd>Ctrl</kbd><span>快速翻译</span></div>
+          <div class="version">Local-first · v1.0.0</div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="pageEyebrow">TRANSLATOR</p>
+            <h1 id="pageTitle">让语言不再成为边界</h1>
+          </div>
+          <button class="topmost-button" id="topmostButton" title="窗口置顶">
+            <svg viewBox="0 0 24 24"><path d="m8 3 8 8M14.5 2.5l7 7-4 1-3 3-.5 5.5-2 2-2.5-6.5L3 12l2-2 5.5-.5 3-3 1-4Z"/></svg>
+            <span>置顶</span>
+          </button>
+        </header>
+
+        <section class="global-download-status" id="globalDownloadStatus" role="status" aria-live="polite" hidden>
+          <span class="global-download-icon"><i class="mini-spinner"></i></span>
+          <div class="global-download-copy">
+            <div class="global-download-heading">
+              <strong id="globalDownloadTitle">正在下载模型</strong>
+              <span id="globalDownloadPercent">正在连接</span>
+            </div>
+            <p id="globalDownloadMessage">正在连接 Hugging Face…</p>
+            <div class="global-progress-track" id="globalProgressTrack"><i id="globalProgressBar"></i></div>
+          </div>
+        </section>
+
+        <section class="view active" id="translateView">
+          <div class="language-bar card">
+            <div class="language-select">
+              <span class="flag-dot source"></span>
+              <select id="sourceLanguage" aria-label="源语言"></select>
+            </div>
+            <button class="swap-button" id="swapLanguages" title="交换语言">
+              <svg viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>
+            </button>
+            <div class="language-select">
+              <span class="flag-dot target"></span>
+              <select id="targetLanguage" aria-label="目标语言"></select>
+            </div>
+            <div class="engine-badge" id="engineBadge"><span></span><strong>本地模型</strong></div>
+          </div>
+
+          <div class="translator-grid">
+            <article class="translation-panel input-panel">
+              <div class="panel-head">
+                <span>原文</span>
+                <button class="icon-button" id="clearInput" title="清空">
+                  <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg>
+                </button>
+              </div>
+              <textarea id="sourceText" maxlength="12000" placeholder="输入或粘贴要翻译的文本…"></textarea>
+              <div class="panel-foot"><span id="characterCount">0 / 12,000</span><span class="shortcut-inline"><kbd>Ctrl</kbd><kbd>Enter</kbd> 翻译</span></div>
+            </article>
+
+            <article class="translation-panel output-panel">
+              <div class="panel-head">
+                <span>译文</span>
+                <button class="copy-button" id="copyResult" disabled>
+                  <svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+                  <span>复制</span>
+                </button>
+              </div>
+              <div class="result-content empty" id="resultText">
+                <div class="result-placeholder">
+                  <span class="placeholder-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 4V5Z"/><path d="M8 9h8M8 13h5"/></svg></span>
+                  <strong>译文将在这里显示</strong>
+                  <small>由你选择的本地模型或 LLM 提供翻译</small>
+                </div>
+              </div>
+              <div class="panel-foot result-meta"><span id="resultMeta">准备就绪</span></div>
+            </article>
+          </div>
+
+          <div class="translate-actions">
+            <button class="primary-button" id="translateButton">
+              <span class="button-label"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg>开始翻译</span>
+              <span class="button-loading"><i></i>正在翻译…</span>
+            </button>
+            <p id="translationStatus">本地模型首次启动时需要一些时间加载</p>
+          </div>
+        </section>
+
+        <section class="view" id="modelsView">
+          <div class="section-heading">
+            <div><h2>本地模型</h2><p>模型文件仅保存在本机，翻译内容无需离开设备。</p></div>
+            <span class="privacy-pill"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>隐私优先</span>
+          </div>
+
+          <div class="runtime-card" id="runtimeCard">
+            <span class="runtime-icon"><svg viewBox="0 0 24 24"><path d="M8 3h8v4H8zM6 7h12v14H6zM9 11h6M9 15h6"/></svg></span>
+            <div><strong id="runtimeTitle">检测本地运行环境…</strong><p id="runtimeMessage">正在查找 Python 与模型依赖</p></div>
+            <button class="secondary-button" id="prepareRuntime">准备运行环境</button>
+          </div>
+
+          <div class="model-list" id="modelList"></div>
+
+          <div class="model-note">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
+            <p>首次下载需要连接 Hugging Face。下载大小因模型版本和依赖环境而异，界面中的大小为估算值。</p>
+          </div>
+        </section>
+
+        <section class="view" id="settingsView">
+          <div class="settings-layout">
+            <div class="settings-main">
+              <section class="settings-card">
+                <div class="settings-title"><span class="settings-icon violet"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM8 10h8M8 14h5"/></svg></span><div><h2>翻译引擎</h2><p>选择优先使用本地模型或 OpenAI 兼容 LLM</p></div></div>
+                <div class="segmented-control" id="providerControl">
+                  <button data-provider="local" class="active"><span>本地模型</span><small>隐私 · 离线</small></button>
+                  <button data-provider="llm"><span>LLM 接口</span><small>OpenAI 兼容</small></button>
+                </div>
+              </section>
+
+              <section class="settings-card" id="llmSettings">
+                <div class="settings-title"><span class="settings-icon cyan"><svg viewBox="0 0 24 24"><path d="M8 3h8v4H8zM5 9h14v10H5zM8 13h.01M12 13h.01M16 13h.01M9 17h6"/></svg></span><div><h2>LLM 接口配置</h2><p>适用于 OpenAI、Ollama、LM Studio 及兼容网关</p></div></div>
+                <div class="form-grid">
+                  <label class="full"><span>Base URL</span><input id="llmBaseUrl" type="url" placeholder="https://api.openai.com/v1" /></label>
+                  <label><span>模型名称</span><input id="llmModel" type="text" placeholder="gpt-4.1-mini" /></label>
+                  <label><span>API Key</span><div class="password-field"><input id="llmApiKey" type="password" placeholder="sk-…" /><button id="toggleApiKey" type="button" title="显示密钥"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div></label>
+                </div>
+                <p class="field-help">Base URL 可填写到域名或 <code>/v1</code>，应用会自动补全 <code>/chat/completions</code>。</p>
+              </section>
+
+              <section class="settings-card">
+                <div class="settings-row">
+                  <div class="settings-title compact"><span class="settings-icon coral"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 8h6M9 12h6M9 16h3"/></svg></span><div><h2>快捷翻译</h2><p>双击 Ctrl，读取当前选中文本并自动翻译</p></div></div>
+                  <label class="switch"><input id="shortcutEnabled" type="checkbox" /><span></span></label>
+                </div>
+                <div class="shortcut-demo"><span>在任意应用中选中文字</span><strong>→</strong><kbd>Ctrl</kbd><span>+</span><kbd>Ctrl</kbd><strong>→</strong><span>自动翻译</span></div>
+                <label class="range-row"><span>双击间隔</span><input id="doubleTapMs" type="range" min="280" max="700" step="20" /><output id="doubleTapValue">420 ms</output></label>
+              </section>
+            </div>
+
+            <aside class="settings-aside">
+              <div class="tip-card">
+                <span><svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8.5 15.5A6 6 0 1 1 15.5 15.5c-.7.6-1 1.1-1 2.5h-5c0-1.4-.3-1.9-1-2.5Z"/></svg></span>
+                <h3>如何选择？</h3>
+                <p><strong>本地模型</strong>适合隐私文本与离线使用；<strong>LLM</strong>通常有更自然的长文本效果，但会将文本发送到你的接口服务。</p>
+              </div>
+              <button class="data-dir-button" id="openDataDirectory" title="日志位于 logs/quick-translation.log"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3z"/></svg>打开数据目录和日志</button>
+            </aside>
+          </div>
+          <div class="settings-footer"><span id="saveHint">修改后请保存设置</span><button class="primary-button compact" id="saveSettings">保存设置</button></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

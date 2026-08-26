@@ -1,0 +1,6 @@
+transformers>=4.48,<5
+torch>=2.5
+sentencepiece>=0.2
+sacremoses>=0.1
+huggingface-hub>=0.27
+

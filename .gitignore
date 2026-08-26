@@ -1,0 +1,16 @@
+# Go / Wails build output
+build/bin/
+*.exe
+*.app
+
+# Frontend dependencies and generated output
+frontend/node_modules/
+frontend/dist/
+
+# Local environment
+.env
+.env.*
+*.log
+.DS_Store
+__pycache__/
+*.pyc
