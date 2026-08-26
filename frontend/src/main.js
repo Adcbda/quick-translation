@@ -9,6 +9,11 @@ const languages = [
   ["ru", "俄语", "РУ"],
 ];
 
+const windowMinimums = {
+  default: [880, 600],
+  minimal: [420, 320],
+};
+
 const state = {
   config: null,
   models: [],
@@ -137,15 +142,21 @@ function wireInteractions() {
   $$("#providerControl button").forEach((button) => button.addEventListener("click", () => selectProvider(button.dataset.provider)));
 }
 
-function applyMinimalMode() {
-  const enabled = Boolean(state.config?.minimalMode);
+function setMinimalModeAppearance(enabled) {
   $("#app").classList.toggle("minimal-mode", enabled);
+  document.body.classList.toggle("minimal-mode", enabled);
   $("#minimalMode").checked = enabled;
+  const [width, height] = enabled ? windowMinimums.minimal : windowMinimums.default;
+  window.runtime?.WindowSetMinSize?.(width, height);
+}
+
+function applyMinimalMode() {
+  setMinimalModeAppearance(Boolean(state.config?.minimalMode));
 }
 
 async function toggleMinimalMode(event) {
   if (!state.config) {
-    $("#app").classList.toggle("minimal-mode", event.currentTarget.checked);
+    setMinimalModeAppearance(event.currentTarget.checked);
     return;
   }
   const previous = Boolean(state.config.minimalMode);

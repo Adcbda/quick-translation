@@ -26,6 +26,7 @@ body {
     radial-gradient(circle at 88% 4%, rgba(99, 84, 222, 0.075), transparent 29%),
     #f6f7fb;
 }
+body.minimal-mode { min-width: 420px; min-height: 320px; }
 
 button, input, textarea, select { font: inherit; }
 button { color: inherit; }
@@ -156,6 +157,7 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 .button-label,.button-loading { align-items:center;gap:9px; }
 .button-label { display:flex; }
 .button-loading { display:none; }
+.compact-label { display:none; }
 .primary-button.loading .button-label { display:none; }
 .primary-button.loading .button-loading { display:flex; }
 .button-loading i,.mini-spinner { width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite; }
@@ -166,23 +168,28 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 #app.minimal-mode .sidebar,
 #app.minimal-mode .topbar,
 #app.minimal-mode .global-download-status { display:none!important; }
-#app.minimal-mode .workspace { padding:14px;overflow:hidden; }
-#app.minimal-mode .language-bar { min-height:50px;grid-template-columns:minmax(110px,1fr) 42px minmax(110px,1fr) auto;padding:4px 10px;margin-bottom:10px;border-radius:12px;box-shadow:0 5px 18px rgba(46,48,75,.055); }
+#app.minimal-mode .workspace { padding:10px;overflow:hidden; }
+#app.minimal-mode #translateView { display:grid;height:calc(100vh - 20px);grid-template-columns:minmax(0,1fr) auto;grid-template-rows:46px minmax(0,1fr);gap:8px; }
+#app.minimal-mode .language-bar { grid-column:1;grid-row:1;min-width:0;min-height:46px;grid-template-columns:minmax(72px,1fr) 34px minmax(72px,1fr) auto;padding:3px 8px;margin:0;border-radius:12px;box-shadow:0 5px 18px rgba(46,48,75,.055); }
 #app.minimal-mode .engine-badge,
 #app.minimal-mode .flag-dot { display:none; }
 #app.minimal-mode .language-select:nth-of-type(2) { padding-left:0; }
 #app.minimal-mode .language-select select { height:36px;font-size:12px; }
 #app.minimal-mode .swap-button { width:34px;height:34px;border-radius:9px; }
 #app.minimal-mode .minimal-mode-toggle { margin-left:10px; }
-#app.minimal-mode .translator-grid { gap:10px;height:calc(100vh - 140px);min-height:0; }
+#app.minimal-mode .translator-grid { grid-column:1/-1;grid-row:2;gap:8px;height:auto;min-height:0; }
 #app.minimal-mode .translation-panel { border-radius:12px;box-shadow:0 5px 18px rgba(46,48,75,.055); }
 #app.minimal-mode .panel-head,
 #app.minimal-mode .panel-foot { display:none; }
 #app.minimal-mode #sourceText,
 #app.minimal-mode .result-content { min-height:0;padding:14px 16px;font-size:14px;line-height:1.65; }
-#app.minimal-mode .translate-actions { margin-top:10px; }
+#app.minimal-mode .translate-actions { grid-column:2;grid-row:1;margin:0;align-items:stretch; }
 #app.minimal-mode .translate-actions p { display:none; }
-#app.minimal-mode .primary-button { min-width:168px;height:42px;border-radius:11px;box-shadow:0 6px 16px rgba(92,72,204,.2); }
+#app.minimal-mode .primary-button { min-width:74px;height:46px;padding:0 12px;border-radius:12px;box-shadow:0 5px 14px rgba(92,72,204,.2); }
+#app.minimal-mode .primary-button .full-label { display:none; }
+#app.minimal-mode .primary-button .compact-label { display:inline; }
+#app.minimal-mode .button-label,
+#app.minimal-mode .button-loading { gap:6px; }
 
 .section-heading { display:flex;align-items:flex-start;justify-content:space-between;margin:2px 0 20px; }
 .section-heading h2,.settings-card h2 { font-size:16px;margin:0 0 7px;letter-spacing:-.2px; }
