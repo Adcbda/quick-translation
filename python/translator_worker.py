@@ -37,12 +37,23 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_model(model_id, cache_dir):
+def load_model(model_id, cache_dir, local_files_only=False):
     import torch
     from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id, cache_dir=cache_dir)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_id, cache_dir=cache_dir)
+    options = {
+        "cache_dir": cache_dir,
+        "local_files_only": local_files_only,
+    }
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_id, **options)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_id, **options)
+    except (OSError, ValueError):
+        if local_files_only:
+            raise RuntimeError(
+                "本地模型缓存不完整或已损坏，请在模型管理中重新下载该模型"
+            ) from None
+        raise
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
     model.eval()
@@ -144,7 +155,14 @@ def translate(tokenizer, model, device, model_id, text, source, target):
 def main():
     args = parse_args()
     os.makedirs(args.cache_dir, exist_ok=True)
-    tokenizer, model, device = load_model(args.model, args.cache_dir)
+    # Download mode is the only operation allowed to contact Hugging Face.
+    # Once marked ready, translations must work from cache even when the
+    # network is unavailable or TLS interception breaks hub HEAD requests.
+    tokenizer, model, device = load_model(
+        args.model,
+        args.cache_dir,
+        local_files_only=not args.download_only,
+    )
     if args.download_only:
         print(json.dumps({"status": "ready", "model": args.model}), flush=True)
         return

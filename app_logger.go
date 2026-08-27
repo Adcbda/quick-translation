@@ -7,6 +7,25 @@ import (
 	"path/filepath"
 )
 
+// programLogWriter treats the log file as the durable destination. Windows
+// GUI executables launched outside a terminal can have an invalid stderr
+// handle, so a console write failure must not prevent file logging.
+type programLogWriter struct {
+	file    io.Writer
+	console io.Writer
+}
+
+func (w programLogWriter) Write(data []byte) (int, error) {
+	written, err := w.file.Write(data)
+	if err != nil {
+		return written, err
+	}
+	if w.console != nil {
+		_, _ = w.console.Write(data)
+	}
+	return len(data), nil
+}
+
 func initialiseProgramLog() (*os.File, string, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
@@ -22,6 +41,6 @@ func initialiseProgramLog() (*os.File, string, error) {
 		return nil, logPath, err
 	}
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
-	log.SetOutput(io.MultiWriter(os.Stderr, file))
+	log.SetOutput(programLogWriter{file: file, console: os.Stderr})
 	return file, logPath, nil
 }
