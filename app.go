@@ -62,6 +62,7 @@ type App struct {
 	store          *configStore
 	local          *localModelService
 	clipboard      *clipboardListener
+	quickOpen      *globalShortcutListener
 	mu             sync.Mutex
 	downloadMu     sync.RWMutex
 	downloadStatus ModelDownloadStatus
@@ -106,6 +107,12 @@ func (a *App) startup(ctx context.Context) {
 	}
 	cfg := a.store.get()
 	runtime.WindowSetAlwaysOnTop(ctx, cfg.AlwaysOnTop)
+	if cfg.QuickOpenEnabled {
+		if err := a.replaceQuickOpenShortcut(true, cfg.QuickOpenShortcut); err != nil {
+			log.Printf("global shortcut startup failed: %v", err)
+			runtime.EventsEmit(ctx, "quick-open-error", err.Error())
+		}
+	}
 	if cfg.ClipboardEnabled {
 		a.startClipboardMonitor()
 	}
@@ -114,10 +121,16 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) shutdown(context.Context) {
 	log.Printf("application shutting down")
 	a.mu.Lock()
-	defer a.mu.Unlock()
-	if a.clipboard != nil {
-		a.clipboard.Stop()
-		a.clipboard = nil
+	clipboard := a.clipboard
+	quickOpen := a.quickOpen
+	a.clipboard = nil
+	a.quickOpen = nil
+	a.mu.Unlock()
+	if clipboard != nil {
+		clipboard.Stop()
+	}
+	if quickOpen != nil {
+		quickOpen.Stop()
 	}
 	if a.local != nil {
 		a.local.Close()
@@ -146,13 +159,29 @@ func (a *App) SaveConfig(cfg Config) error {
 	if a.initErr != nil {
 		return a.initErr
 	}
+	binding, err := parseGlobalShortcut(cfg.QuickOpenShortcut)
+	if err != nil {
+		return err
+	}
+	cfg.QuickOpenShortcut = binding.canonical
 	previous := a.store.get()
+	shortcutChanged := previous.QuickOpenEnabled != cfg.QuickOpenEnabled || previous.QuickOpenShortcut != cfg.QuickOpenShortcut
+	if shortcutChanged {
+		if err := a.replaceQuickOpenShortcut(cfg.QuickOpenEnabled, cfg.QuickOpenShortcut); err != nil {
+			return err
+		}
+	}
 	if err := a.store.save(cfg); err != nil {
+		if shortcutChanged {
+			if rollbackErr := a.replaceQuickOpenShortcut(previous.QuickOpenEnabled, previous.QuickOpenShortcut); rollbackErr != nil {
+				log.Printf("restoring global shortcut after save failure failed: %v", rollbackErr)
+			}
+		}
 		log.Printf("saving configuration failed: %v", err)
 		return err
 	}
 	cfg = a.store.get()
-	log.Printf("configuration saved; provider=%s local_model=%s clipboard=%t always_on_top=%t", cfg.Provider, cfg.LocalModel, cfg.ClipboardEnabled, cfg.AlwaysOnTop)
+	log.Printf("configuration saved; provider=%s local_model=%s clipboard=%t quick_open=%t shortcut=%s always_on_top=%t", cfg.Provider, cfg.LocalModel, cfg.ClipboardEnabled, cfg.QuickOpenEnabled, cfg.QuickOpenShortcut, cfg.AlwaysOnTop)
 	if a.ctx != nil {
 		runtime.WindowSetAlwaysOnTop(a.ctx, cfg.AlwaysOnTop)
 	}
@@ -430,4 +459,34 @@ func (a *App) stopClipboardMonitor() {
 		a.clipboard.Stop()
 		a.clipboard = nil
 	}
+}
+
+func (a *App) replaceQuickOpenShortcut(enabled bool, shortcut string) error {
+	var replacement *globalShortcutListener
+	if enabled {
+		listener, err := newGlobalShortcutListener(shortcut, a.openTranslationWindow)
+		if err != nil {
+			return err
+		}
+		replacement = listener
+	}
+
+	a.mu.Lock()
+	previous := a.quickOpen
+	a.quickOpen = replacement
+	a.mu.Unlock()
+	if previous != nil {
+		previous.Stop()
+	}
+	return nil
+}
+
+func (a *App) openTranslationWindow() {
+	if a.ctx == nil {
+		return
+	}
+	log.Printf("global quick-open shortcut triggered")
+	runtime.WindowUnminimise(a.ctx)
+	runtime.WindowShow(a.ctx)
+	runtime.EventsEmit(a.ctx, "quick-open")
 }

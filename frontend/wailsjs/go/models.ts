@@ -7,6 +7,8 @@ export namespace main {
 	    llmModel: string;
 	    llmApiKey: string;
 	    clipboardEnabled: boolean;
+	    quickOpenEnabled: boolean;
+	    quickOpenShortcut: string;
 	    alwaysOnTop: boolean;
 	    minimalMode: boolean;
 	    darkMode: boolean;
@@ -25,6 +27,8 @@ export namespace main {
 	        this.llmModel = source["llmModel"];
 	        this.llmApiKey = source["llmApiKey"];
 	        this.clipboardEnabled = source["clipboardEnabled"];
+	        this.quickOpenEnabled = source["quickOpenEnabled"];
+	        this.quickOpenShortcut = source["quickOpenShortcut"];
 	        this.alwaysOnTop = source["alwaysOnTop"];
 	        this.minimalMode = source["minimalMode"];
 	        this.darkMode = source["darkMode"];

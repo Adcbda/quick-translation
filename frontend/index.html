@@ -33,7 +33,7 @@
         </nav>
 
         <div class="sidebar-foot">
-          <div class="shortcut-hint"><span class="pulse-dot"></span><span>复制文本自动翻译</span></div>
+          <div class="shortcut-hint"><span class="pulse-dot"></span><span id="quickOpenHint">双击 Ctrl 快速唤起</span></div>
           <div class="version">Local-first · v1.0.0</div>
         </div>
       </aside>
@@ -162,6 +162,20 @@
                   <label><span>API Key</span><div class="password-field"><input id="llmApiKey" type="password" placeholder="sk-…" /><button id="toggleApiKey" type="button" title="显示密钥"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div></label>
                 </div>
                 <p class="field-help">Base URL 可填写到域名或 <code>/v1</code>，应用会自动补全 <code>/chat/completions</code>。</p>
+              </section>
+
+              <section class="settings-card">
+                <div class="settings-row">
+                  <div class="settings-title compact"><span class="settings-icon violet"><svg viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z"/></svg></span><div><h2>快捷键快速唤起</h2><p>在任意应用中使用全局快捷键打开并聚焦翻译窗口</p></div></div>
+                  <label class="switch"><input id="quickOpenEnabled" type="checkbox" aria-label="快捷键快速唤起" /><span aria-hidden="true"></span></label>
+                </div>
+                <div class="shortcut-config" id="shortcutConfig">
+                  <div class="shortcut-config-copy"><strong>唤起快捷键</strong><small id="shortcutHelp">点击右侧按键，然后按下新的快捷键</small></div>
+                  <div class="shortcut-config-actions">
+                    <button class="shortcut-recorder" id="shortcutRecorder" type="button"><span id="shortcutDisplay">双击 Ctrl</span><em>点击修改</em></button>
+                    <button class="shortcut-reset" id="resetShortcut" type="button" title="恢复默认快捷键" aria-label="恢复默认快捷键"><svg viewBox="0 0 24 24"><path d="M4 4v6h6M5.5 16a8 8 0 1 0 .5-9l-2 3"/></svg></button>
+                  </div>
+                </div>
               </section>
 
               <section class="settings-card">

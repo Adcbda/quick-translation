@@ -22,6 +22,9 @@ const state = {
   queuedClipboardText: "",
   result: "",
   modelDownload: { model: "", status: "idle", message: "", progress: -1 },
+  capturingShortcut: false,
+  shortcutCaptureModifier: "",
+  shortcutCaptureAt: 0,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -90,12 +93,14 @@ function applyConfig() {
   $("#llmModel").value = cfg.llmModel || "";
   $("#llmApiKey").value = cfg.llmApiKey || "";
   $("#clipboardEnabled").checked = Boolean(cfg.clipboardEnabled);
+  $("#quickOpenEnabled").checked = Boolean(cfg.quickOpenEnabled);
   $("#topmostButton").classList.toggle("active", Boolean(cfg.alwaysOnTop));
   applyTheme();
   applyMinimalMode();
   $$("#providerControl button").forEach((button) => button.classList.toggle("active", button.dataset.provider === cfg.provider));
   $("#llmSettings").classList.toggle("muted", cfg.provider !== "llm");
   updateEngineBadge();
+  renderShortcutControls();
   updateShortcutHint();
 }
 
@@ -112,9 +117,28 @@ function updateEngineBadge() {
 }
 
 function updateShortcutHint() {
-  const enabled = Boolean(state.config?.clipboardEnabled);
+  const enabled = Boolean(state.config?.quickOpenEnabled);
   $(".shortcut-hint").classList.toggle("disabled", !enabled);
   $(".pulse-dot").classList.toggle("off", !enabled);
+  $("#quickOpenHint").textContent = enabled ? `${shortcutLabel(state.config?.quickOpenShortcut)} 快速唤起` : "快捷键唤起已关闭";
+}
+
+function shortcutLabel(shortcut) {
+  const value = String(shortcut || "DoubleCtrl");
+  if (value.startsWith("Double")) return `双击 ${value.slice(6)}`;
+  return value.split("+").join(" + ");
+}
+
+function renderShortcutControls() {
+  const shortcut = state.config?.quickOpenShortcut || "DoubleCtrl";
+  const enabled = $("#quickOpenEnabled").checked;
+  $("#shortcutDisplay").textContent = shortcutLabel(shortcut);
+  $("#shortcutConfig").classList.toggle("disabled", !enabled);
+  $("#shortcutRecorder").disabled = !enabled;
+  $("#resetShortcut").disabled = !enabled || shortcut === "DoubleCtrl";
+  if (!state.capturingShortcut) {
+    $("#shortcutRecorder em").textContent = "点击修改";
+  }
 }
 
 function wireInteractions() {
@@ -134,6 +158,10 @@ function wireInteractions() {
   $("#targetLanguage").addEventListener("change", rememberLanguages);
   $("#minimalMode").addEventListener("change", toggleMinimalMode);
   $("#darkMode").addEventListener("change", previewDarkMode);
+  $("#quickOpenEnabled").addEventListener("change", previewQuickOpenEnabled);
+  $("#shortcutRecorder").addEventListener("click", startShortcutCapture);
+  $("#resetShortcut").addEventListener("click", resetQuickOpenShortcut);
+  document.addEventListener("keydown", captureShortcutKey, true);
   $("#topmostButton").addEventListener("click", toggleTopmost);
   $("#saveSettings").addEventListener("click", saveSettings);
   $("#prepareRuntime").addEventListener("click", prepareRuntime);
@@ -143,6 +171,116 @@ function wireInteractions() {
     input.type = input.type === "password" ? "text" : "password";
   });
   $$("#providerControl button").forEach((button) => button.addEventListener("click", () => selectProvider(button.dataset.provider)));
+}
+
+function previewQuickOpenEnabled(event) {
+  if (state.capturingShortcut) finishShortcutCapture();
+  renderShortcutControls();
+  $("#saveHint").textContent = event.currentTarget.checked ? "快捷键唤起已开启，请保存设置" : "快捷键唤起已关闭，请保存设置";
+}
+
+function startShortcutCapture() {
+  if (state.capturingShortcut) {
+    finishShortcutCapture();
+    return;
+  }
+  state.capturingShortcut = true;
+  state.shortcutCaptureModifier = "";
+  state.shortcutCaptureAt = 0;
+  $("#shortcutRecorder").classList.add("recording");
+  $("#shortcutRecorder em").textContent = "录入中";
+  $("#shortcutDisplay").textContent = "请按快捷键…";
+  $("#shortcutHelp").textContent = "可双击 Ctrl / Shift / Alt，或按下带修饰键的组合；Esc 取消";
+}
+
+function finishShortcutCapture() {
+  state.capturingShortcut = false;
+  state.shortcutCaptureModifier = "";
+  state.shortcutCaptureAt = 0;
+  $("#shortcutRecorder").classList.remove("recording");
+  $("#shortcutHelp").textContent = "点击右侧按键，然后按下新的快捷键";
+  renderShortcutControls();
+}
+
+function captureShortcutKey(event) {
+  if (!state.capturingShortcut) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (event.repeat) return;
+  if (event.key === "Escape") {
+    finishShortcutCapture();
+    return;
+  }
+  if (event.metaKey || event.key === "Meta") {
+    $("#shortcutHelp").textContent = "暂不支持 Windows 键，请选择 Ctrl、Shift 或 Alt";
+    return;
+  }
+
+  const modifier = { Control: "Ctrl", Shift: "Shift", Alt: "Alt" }[event.key];
+  if (modifier) {
+    const now = performance.now();
+    if (state.shortcutCaptureModifier === modifier && now - state.shortcutCaptureAt <= 700) {
+      acceptCapturedShortcut(`Double${modifier}`);
+      return;
+    }
+    state.shortcutCaptureModifier = modifier;
+    state.shortcutCaptureAt = now;
+    $("#shortcutDisplay").textContent = `再按一次 ${modifier}`;
+    $("#shortcutHelp").textContent = `再次按下 ${modifier} 可设为双击唤起，也可继续按一个普通按键`;
+    return;
+  }
+
+  const key = shortcutKeyFromEvent(event);
+  if (!key) {
+    $("#shortcutHelp").textContent = "这个按键暂不支持，请换一个字母、数字、F1–F12 或常用功能键";
+    return;
+  }
+  const modifiers = [];
+  if (event.ctrlKey) modifiers.push("Ctrl");
+  if (event.shiftKey) modifiers.push("Shift");
+  if (event.altKey) modifiers.push("Alt");
+  if (!modifiers.length) {
+    $("#shortcutHelp").textContent = "组合快捷键至少需要 Ctrl、Shift 或 Alt 中的一个";
+    return;
+  }
+  acceptCapturedShortcut([...modifiers, key].join("+"));
+}
+
+function shortcutKeyFromEvent(event) {
+  if (/^Key[A-Z]$/.test(event.code)) return event.code.slice(3);
+  if (/^Digit[0-9]$/.test(event.code)) return event.code.slice(5);
+  if (/^F(?:[1-9]|1[0-2])$/.test(event.key)) return event.key;
+  return {
+    Space: "Space",
+    Enter: "Enter",
+    Tab: "Tab",
+    Backspace: "Backspace",
+    Delete: "Delete",
+    Insert: "Insert",
+    Home: "Home",
+    End: "End",
+    PageUp: "PageUp",
+    PageDown: "PageDown",
+    ArrowLeft: "Left",
+    ArrowUp: "Up",
+    ArrowRight: "Right",
+    ArrowDown: "Down",
+  }[event.key] || "";
+}
+
+function acceptCapturedShortcut(shortcut) {
+  state.config.quickOpenShortcut = shortcut;
+  finishShortcutCapture();
+  $("#shortcutHelp").textContent = "快捷键已修改，保存设置后生效";
+  $("#saveHint").textContent = "唤起快捷键已修改，请保存设置";
+}
+
+function resetQuickOpenShortcut() {
+  if (!state.config) return;
+  state.config.quickOpenShortcut = "DoubleCtrl";
+  finishShortcutCapture();
+  $("#shortcutHelp").textContent = "已恢复为双击 Ctrl，保存设置后生效";
+  $("#saveHint").textContent = "唤起快捷键已恢复默认，请保存设置";
 }
 
 function setMinimalModeAppearance(enabled) {
@@ -198,6 +336,11 @@ function wireRuntimeEvents() {
   if (!eventsOn) return;
   eventsOn("clipboard-translate", translateClipboardText);
   eventsOn("clipboard-error", (message) => toast(message, "error", 6000));
+  eventsOn("quick-open", () => {
+    showView("translate");
+    requestAnimationFrame(() => $("#sourceText").focus());
+  });
+  eventsOn("quick-open-error", (message) => toast(message, "error", 6000));
   eventsOn("runtime-status", (message) => {
     $("#runtimeMessage").textContent = message;
   });
@@ -551,15 +694,25 @@ async function saveSettings() {
   state.config.llmModel = $("#llmModel").value.trim();
   state.config.llmApiKey = $("#llmApiKey").value.trim();
   state.config.clipboardEnabled = $("#clipboardEnabled").checked;
+  state.config.quickOpenEnabled = $("#quickOpenEnabled").checked;
   state.config.darkMode = $("#darkMode").checked;
   state.config.sourceLanguage = $("#sourceLanguage").value;
   state.config.targetLanguage = $("#targetLanguage").value;
   try {
     await backend().SaveConfig(state.config);
     applyConfig();
+    finishShortcutCapture();
+    $("#shortcutHelp").textContent = "当前快捷键已生效；点击右侧按键可再次修改";
     $("#saveHint").textContent = "所有设置已保存";
     toast("设置已保存", "success");
   } catch (error) {
+    try {
+      state.config = await backend().GetConfig();
+      applyConfig();
+      finishShortcutCapture();
+    } catch {
+      // Keep the original save error as the actionable message.
+    }
     toast(errorMessage(error), "error", 6000);
   }
 }

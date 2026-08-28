@@ -58,7 +58,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 .nav-item.active { color: var(--violet); background: linear-gradient(100deg, #eeecff, #f6f4ff); box-shadow: inset 3px 0 #6857df; }
 
 .sidebar-foot { margin-top: auto; }
-.shortcut-hint { background: #f7f6fc; border: 1px solid #eeecf6; border-radius: 13px; padding: 12px 10px; display: flex; align-items: center; gap: 6px; color: #757b8e; font-size: 10px; white-space: nowrap; transition: opacity .2s; }
+.shortcut-hint { background: #f7f6fc; border: 1px solid #eeecf6; border-radius: 13px; padding: 12px 10px; display: flex; align-items: center; gap: 7px; color: #757b8e; font-size: 10px; line-height:1.35; transition: opacity .2s; }
+.shortcut-hint .pulse-dot { flex:0 0 7px; }
 .shortcut-hint.disabled { opacity: .48; }
 .pulse-dot { width: 7px; height: 7px; background: #40bf83; border-radius: 50%; box-shadow: 0 0 0 4px rgba(64, 191, 131, .12); }
 .pulse-dot.off { background: #a7abba; box-shadow: none; }
@@ -274,6 +275,23 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 .switch input:checked+span { background:#6e5ddd; }
 .switch input:checked+span::after { transform:translateX(18px); }
 .switch input:focus-visible+span { outline:3px solid rgba(103,87,223,.22);outline-offset:2px; }
+.shortcut-config { display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px;padding:11px 12px 11px 14px;border:1px solid #e5e6ed;border-radius:11px;background:#fafafe;transition:.2s; }
+.shortcut-config.disabled { opacity:.5; }
+.shortcut-config-copy { display:flex;min-width:0;flex-direction:column;gap:4px; }
+.shortcut-config-copy strong { color:#60677a;font-size:9px; }
+.shortcut-config-copy small { color:#9ba0ae;font-size:8px;line-height:1.45; }
+.shortcut-config-actions { display:flex;align-items:center;gap:7px;flex:0 0 auto; }
+.shortcut-recorder { min-width:144px;height:36px;padding:0 10px;border:1px solid #dcdde6;border-radius:9px;background:white;color:#555d70;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;transition:.18s; }
+.shortcut-recorder span { font-size:10px;font-weight:750; }
+.shortcut-recorder em { color:#a1a6b3;font-size:8px;font-style:normal;font-weight:600; }
+.shortcut-recorder:hover:not(:disabled) { color:var(--violet);border-color:#bbb4e9;background:#fdfcff; }
+.shortcut-recorder.recording { color:var(--violet);border-color:#9489e1;background:#f4f1ff;box-shadow:0 0 0 3px rgba(103,87,223,.1); }
+.shortcut-recorder:focus-visible,.shortcut-reset:focus-visible { outline:3px solid rgba(103,87,223,.18);outline-offset:2px; }
+.shortcut-recorder:disabled,.shortcut-reset:disabled { cursor:default; }
+.shortcut-reset { width:36px;height:36px;border:1px solid #dcdde6;border-radius:9px;background:white;color:#9a9fac;display:grid;place-items:center;cursor:pointer;transition:.18s; }
+.shortcut-reset:hover:not(:disabled) { color:var(--violet);border-color:#bbb4e9; }
+.shortcut-reset:disabled { opacity:.45; }
+.shortcut-reset svg { width:15px; }
 .shortcut-demo { display:flex;align-items:center;justify-content:center;gap:8px;background:#f8f8fb;border:1px dashed #dedee7;border-radius:10px;padding:9px;margin-top:14px;color:#8d92a0;font-size:9px; }
 .shortcut-demo strong { color:#b5b8c2; }
 .shortcut-demo kbd { font-size:9px;padding:3px 7px; }
@@ -390,6 +408,15 @@ kbd { border: 1px solid #dcdce7; border-bottom-width: 2px; color: #595f70; backg
 :root[data-theme="dark"] .form-grid input:focus { border-color:#776ca5;background:#242733;box-shadow:0 0 0 3px rgba(169,156,248,.1); }
 :root[data-theme="dark"] .password-field button { color:#8991a2; }
 :root[data-theme="dark"] .field-help code { background:#292634;color:#b3a8e2; }
+:root[data-theme="dark"] .shortcut-config { background:#20232d;border-color:#353946; }
+:root[data-theme="dark"] .shortcut-config-copy strong { color:#b7bdca; }
+:root[data-theme="dark"] .shortcut-config-copy small { color:#858d9f; }
+:root[data-theme="dark"] .shortcut-recorder,
+:root[data-theme="dark"] .shortcut-reset { background:#282b36;border-color:#3d414f;color:#c2c8d5; }
+:root[data-theme="dark"] .shortcut-recorder em { color:#81899b; }
+:root[data-theme="dark"] .shortcut-recorder:hover:not(:disabled),
+:root[data-theme="dark"] .shortcut-reset:hover:not(:disabled) { color:#b9afff;border-color:#665e89;background:#2b2e3b; }
+:root[data-theme="dark"] .shortcut-recorder.recording { color:#b9afff;border-color:#766ba2;background:#2c2940;box-shadow:0 0 0 3px rgba(169,156,248,.1); }
 :root[data-theme="dark"] .shortcut-demo { background:#21242e;border-color:#3a3e4b;color:#9ba3b4; }
 :root[data-theme="dark"] .shortcut-demo strong { color:#737b8d; }
 :root[data-theme="dark"] .settings-footer>span { color:#858d9f; }

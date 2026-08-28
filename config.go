@@ -15,26 +15,30 @@ const (
 )
 
 type Config struct {
-	Provider         string `json:"provider"`
-	LocalModel       string `json:"localModel"`
-	LLMBaseURL       string `json:"llmBaseUrl"`
-	LLMModel         string `json:"llmModel"`
-	LLMAPIKey        string `json:"llmApiKey"`
-	ClipboardEnabled bool   `json:"clipboardEnabled"`
-	AlwaysOnTop      bool   `json:"alwaysOnTop"`
-	MinimalMode      bool   `json:"minimalMode"`
-	DarkMode         bool   `json:"darkMode"`
-	SourceLanguage   string `json:"sourceLanguage"`
-	TargetLanguage   string `json:"targetLanguage"`
+	Provider          string `json:"provider"`
+	LocalModel        string `json:"localModel"`
+	LLMBaseURL        string `json:"llmBaseUrl"`
+	LLMModel          string `json:"llmModel"`
+	LLMAPIKey         string `json:"llmApiKey"`
+	ClipboardEnabled  bool   `json:"clipboardEnabled"`
+	QuickOpenEnabled  bool   `json:"quickOpenEnabled"`
+	QuickOpenShortcut string `json:"quickOpenShortcut"`
+	AlwaysOnTop       bool   `json:"alwaysOnTop"`
+	MinimalMode       bool   `json:"minimalMode"`
+	DarkMode          bool   `json:"darkMode"`
+	SourceLanguage    string `json:"sourceLanguage"`
+	TargetLanguage    string `json:"targetLanguage"`
 }
 
 func defaultConfig() Config {
 	return Config{
-		Provider:         "local",
-		LocalModel:       defaultLocalModel,
-		ClipboardEnabled: true,
-		SourceLanguage:   "en",
-		TargetLanguage:   "zh",
+		Provider:          "local",
+		LocalModel:        defaultLocalModel,
+		ClipboardEnabled:  true,
+		QuickOpenEnabled:  true,
+		QuickOpenShortcut: defaultQuickOpenShortcut,
+		SourceLanguage:    "en",
+		TargetLanguage:    "zh",
 	}
 }
 
@@ -102,6 +106,7 @@ func (c *Config) normalize() {
 	if c.TargetLanguage == "" {
 		c.TargetLanguage = "zh"
 	}
+	c.QuickOpenShortcut = normalizeQuickOpenShortcut(c.QuickOpenShortcut)
 	if c.LLMBaseURL != "" {
 		c.LLMBaseURL = strings.TrimRight(strings.TrimSpace(c.LLMBaseURL), "/")
 	}

@@ -63,3 +63,42 @@ func TestConfigStorePersistsAppearanceSettings(t *testing.T) {
 		t.Fatal("dark mode was not persisted")
 	}
 }
+
+func TestConfigDefaultsQuickOpenShortcut(t *testing.T) {
+	var cfg Config
+	if err := json.Unmarshal([]byte(`{"provider":"local"}`), &cfg); err != nil {
+		t.Fatalf("decode config: %v", err)
+	}
+	if !cfg.QuickOpenEnabled {
+		t.Fatal("quick open should be enabled by default")
+	}
+	if cfg.QuickOpenShortcut != defaultQuickOpenShortcut {
+		t.Fatalf("quick open shortcut = %q", cfg.QuickOpenShortcut)
+	}
+}
+
+func TestConfigStorePersistsQuickOpenSettings(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	store := &configStore{path: path, cfg: defaultConfig()}
+	cfg := defaultConfig()
+	cfg.QuickOpenEnabled = false
+	cfg.QuickOpenShortcut = "shift+ctrl+q"
+
+	if err := store.save(cfg); err != nil {
+		t.Fatalf("save config: %v", err)
+	}
+	var saved Config
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read config: %v", err)
+	}
+	if err := json.Unmarshal(data, &saved); err != nil {
+		t.Fatalf("decode config: %v", err)
+	}
+	if saved.QuickOpenEnabled {
+		t.Fatal("disabled quick open setting was not persisted")
+	}
+	if saved.QuickOpenShortcut != "Ctrl+Shift+Q" {
+		t.Fatalf("quick open shortcut = %q", saved.QuickOpenShortcut)
+	}
+}
