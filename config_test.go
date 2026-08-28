@@ -38,11 +38,12 @@ func TestSafeModelName(t *testing.T) {
 	}
 }
 
-func TestConfigStorePersistsMinimalMode(t *testing.T) {
+func TestConfigStorePersistsAppearanceSettings(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	store := &configStore{path: path, cfg: defaultConfig()}
 	cfg := defaultConfig()
 	cfg.MinimalMode = true
+	cfg.DarkMode = true
 
 	if err := store.save(cfg); err != nil {
 		t.Fatalf("save config: %v", err)
@@ -57,5 +58,8 @@ func TestConfigStorePersistsMinimalMode(t *testing.T) {
 	}
 	if !saved.MinimalMode {
 		t.Fatal("minimal mode was not persisted")
+	}
+	if !saved.DarkMode {
+		t.Fatal("dark mode was not persisted")
 	}
 }

@@ -6,7 +6,7 @@
 
 - 英语 → 中文默认翻译，可在界面中切换 8 种常用语言
 - 本地模型下载、跨页面实时进度、状态检查与切换
-- OpenAI 兼容接口配置：Base URL、Model、API Key
+- OpenAI 兼容接口配置：Base URL、Model、API Key，支持流式显示译文
 - 复制文本后监听剪贴板变化并自动翻译（Windows）
 - 翻译窗口置顶、结果一键复制
 - 配置保存在本地用户配置目录
@@ -61,7 +61,7 @@ wails build -platform windows/amd64
 - 模型名称：接口支持的模型 ID
 - API Key：可留空以连接不验证密钥的本地服务
 
-应用自动补全 `/v1/chat/completions`，若 Base URL 已经以 `/chat/completions` 结尾则直接使用。API Key 当前保存在本地配置文件中，请注意操作系统账户安全。
+应用自动补全 `/v1/chat/completions`，若 Base URL 已经以 `/chat/completions` 结尾则直接使用。LLM 请求默认启用 OpenAI 兼容的 SSE 流式响应；若服务端忽略流式参数并返回普通 JSON，应用也会自动兼容。API Key 当前保存在本地配置文件中，请注意操作系统账户安全。
 
 ## 剪贴板自动翻译说明
 

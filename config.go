@@ -23,6 +23,7 @@ type Config struct {
 	ClipboardEnabled bool   `json:"clipboardEnabled"`
 	AlwaysOnTop      bool   `json:"alwaysOnTop"`
 	MinimalMode      bool   `json:"minimalMode"`
+	DarkMode         bool   `json:"darkMode"`
 	SourceLanguage   string `json:"sourceLanguage"`
 	TargetLanguage   string `json:"targetLanguage"`
 }

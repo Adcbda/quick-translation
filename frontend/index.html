@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f5f6fa" />
+    <meta id="themeColor" name="theme-color" content="#f5f6fa" />
     <title>Quick Translation</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
@@ -167,9 +167,16 @@
               <section class="settings-card">
                 <div class="settings-row">
                   <div class="settings-title compact"><span class="settings-icon coral"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 8h6M9 12h6M9 16h3"/></svg></span><div><h2>剪贴板自动翻译</h2><p>复制文本后，自动读取剪贴板并开始翻译</p></div></div>
-                  <label class="switch"><input id="clipboardEnabled" type="checkbox" /><span></span></label>
+                  <label class="switch"><input id="clipboardEnabled" type="checkbox" aria-label="剪贴板自动翻译" /><span aria-hidden="true"></span></label>
                 </div>
                 <div class="shortcut-demo"><span>在任意应用中复制文字</span><strong>→</strong><kbd>Ctrl</kbd><span>+</span><kbd>C</kbd><strong>→</strong><span>自动翻译</span></div>
+              </section>
+
+              <section class="settings-card">
+                <div class="settings-row">
+                  <div class="settings-title compact"><span class="settings-icon indigo"><svg viewBox="0 0 24 24"><path d="M20.4 15.2A8.5 8.5 0 0 1 8.8 3.6 8.5 8.5 0 1 0 20.4 15.2Z"/></svg></span><div><h2>夜间模式</h2><p>使用深色界面，减少暗光环境下的视觉疲劳</p></div></div>
+                  <label class="switch"><input id="darkMode" type="checkbox" aria-label="夜间模式" /><span aria-hidden="true"></span></label>
+                </div>
               </section>
             </div>
 

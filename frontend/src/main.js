@@ -18,6 +18,7 @@ const state = {
   config: null,
   models: [],
   translating: false,
+  activeTranslationID: "",
   queuedClipboardText: "",
   result: "",
   modelDownload: { model: "", status: "idle", message: "", progress: -1 },
@@ -90,6 +91,7 @@ function applyConfig() {
   $("#llmApiKey").value = cfg.llmApiKey || "";
   $("#clipboardEnabled").checked = Boolean(cfg.clipboardEnabled);
   $("#topmostButton").classList.toggle("active", Boolean(cfg.alwaysOnTop));
+  applyTheme();
   applyMinimalMode();
   $$("#providerControl button").forEach((button) => button.classList.toggle("active", button.dataset.provider === cfg.provider));
   $("#llmSettings").classList.toggle("muted", cfg.provider !== "llm");
@@ -131,6 +133,7 @@ function wireInteractions() {
   $("#sourceLanguage").addEventListener("change", rememberLanguages);
   $("#targetLanguage").addEventListener("change", rememberLanguages);
   $("#minimalMode").addEventListener("change", toggleMinimalMode);
+  $("#darkMode").addEventListener("change", previewDarkMode);
   $("#topmostButton").addEventListener("click", toggleTopmost);
   $("#saveSettings").addEventListener("click", saveSettings);
   $("#prepareRuntime").addEventListener("click", prepareRuntime);
@@ -152,6 +155,25 @@ function setMinimalModeAppearance(enabled) {
 
 function applyMinimalMode() {
   setMinimalModeAppearance(Boolean(state.config?.minimalMode));
+}
+
+function setThemeAppearance(enabled) {
+  const theme = enabled ? "dark" : "light";
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  $("#darkMode").checked = enabled;
+  $("#themeColor").content = enabled ? "#11131b" : "#f5f6fa";
+}
+
+function applyTheme() {
+  setThemeAppearance(Boolean(state.config?.darkMode));
+}
+
+function previewDarkMode(event) {
+  const enabled = event.currentTarget.checked;
+  if (state.config) state.config.darkMode = enabled;
+  setThemeAppearance(enabled);
+  $("#saveHint").textContent = "外观已修改，请保存设置";
 }
 
 async function toggleMinimalMode(event) {
@@ -182,6 +204,20 @@ function wireRuntimeEvents() {
   eventsOn("model-download-status", (payload) => {
     updateModelDownloadStatus(payload);
   });
+  eventsOn("translation-stream", appendTranslationChunk);
+}
+
+function appendTranslationChunk(payload) {
+  if (!state.translating || payload?.requestId !== state.activeTranslationID) return;
+  const delta = String(payload?.delta || "");
+  if (!delta) return;
+  state.result += delta;
+  const resultNode = $("#resultText");
+  resultNode.className = "result-content streaming-result";
+  resultNode.textContent = state.result;
+  resultNode.scrollTop = resultNode.scrollHeight;
+  $("#resultMeta").textContent = "LLM · 正在接收译文…";
+  $("#translationStatus").textContent = "正在流式翻译…";
 }
 
 function translateClipboardText(value) {
@@ -334,18 +370,28 @@ async function translate() {
     return;
   }
   state.translating = true;
+  state.activeTranslationID = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+  state.result = "";
   $("#translateButton").classList.add("loading");
   $("#translateButton").disabled = true;
   $("#translationStatus").textContent = "正在调用翻译引擎…";
   const resultNode = $("#resultText");
-  resultNode.className = "result-content loading-result";
-  resultNode.innerHTML = `<div class="skeleton-lines"><i></i><i></i><i></i><i></i></div>`;
+  const streaming = state.config?.provider === "llm";
+  if (streaming) {
+    resultNode.className = "result-content streaming-result";
+    resultNode.textContent = "";
+    $("#resultMeta").textContent = "LLM · 正在等待响应…";
+  } else {
+    resultNode.className = "result-content loading-result";
+    resultNode.innerHTML = `<div class="skeleton-lines"><i></i><i></i><i></i><i></i></div>`;
+  }
   const started = performance.now();
   try {
     const result = await backend().Translate({
       text,
       source: $("#sourceLanguage").value,
       target: $("#targetLanguage").value,
+      requestId: state.activeTranslationID,
     });
     state.result = result.text;
     resultNode.className = "result-content";
@@ -361,6 +407,7 @@ async function translate() {
     toast(message, "error", 6000);
   } finally {
     state.translating = false;
+    state.activeTranslationID = "";
     $("#translateButton").classList.remove("loading");
     $("#translateButton").disabled = false;
     if (state.queuedClipboardText) {
@@ -504,6 +551,7 @@ async function saveSettings() {
   state.config.llmModel = $("#llmModel").value.trim();
   state.config.llmApiKey = $("#llmApiKey").value.trim();
   state.config.clipboardEnabled = $("#clipboardEnabled").checked;
+  state.config.darkMode = $("#darkMode").checked;
   state.config.sourceLanguage = $("#sourceLanguage").value;
   state.config.targetLanguage = $("#targetLanguage").value;
   try {

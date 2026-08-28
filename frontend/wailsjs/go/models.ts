@@ -9,6 +9,7 @@ export namespace main {
 	    clipboardEnabled: boolean;
 	    alwaysOnTop: boolean;
 	    minimalMode: boolean;
+	    darkMode: boolean;
 	    sourceLanguage: string;
 	    targetLanguage: string;
 	
@@ -26,6 +27,7 @@ export namespace main {
 	        this.clipboardEnabled = source["clipboardEnabled"];
 	        this.alwaysOnTop = source["alwaysOnTop"];
 	        this.minimalMode = source["minimalMode"];
+	        this.darkMode = source["darkMode"];
 	        this.sourceLanguage = source["sourceLanguage"];
 	        this.targetLanguage = source["targetLanguage"];
 	    }
@@ -96,6 +98,7 @@ export namespace main {
 	    text: string;
 	    source: string;
 	    target: string;
+	    requestId: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new TranslateRequest(source);
@@ -106,6 +109,7 @@ export namespace main {
 	        this.text = source["text"];
 	        this.source = source["source"];
 	        this.target = source["target"];
+	        this.requestId = source["requestId"];
 	    }
 	}
 	export class TranslateResult {
@@ -126,3 +130,4 @@ export namespace main {
 	}
 
 }
+

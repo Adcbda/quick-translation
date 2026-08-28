@@ -15,15 +15,21 @@ import (
 )
 
 type TranslateRequest struct {
-	Text   string `json:"text"`
-	Source string `json:"source"`
-	Target string `json:"target"`
+	Text      string `json:"text"`
+	Source    string `json:"source"`
+	Target    string `json:"target"`
+	RequestID string `json:"requestId"`
 }
 
 type TranslateResult struct {
 	Text     string `json:"text"`
 	Provider string `json:"provider"`
 	Model    string `json:"model"`
+}
+
+type TranslationStreamChunk struct {
+	RequestID string `json:"requestId"`
+	Delta     string `json:"delta"`
 }
 
 type ModelInfo struct {
@@ -197,7 +203,30 @@ func (a *App) Translate(req TranslateRequest) (TranslateResult, error) {
 		req.Target = cfg.TargetLanguage
 	}
 	if cfg.Provider == "llm" {
-		translated, err := translateWithLLM(a.ctx, cfg, req)
+		var pending strings.Builder
+		var lastEmit time.Time
+		emitPending := func() {
+			if pending.Len() == 0 || a.ctx == nil {
+				return
+			}
+			delta := pending.String()
+			pending.Reset()
+			lastEmit = time.Now()
+			runtime.EventsEmit(a.ctx, "translation-stream", TranslationStreamChunk{
+				RequestID: req.RequestID,
+				Delta:     delta,
+			})
+		}
+		translated, err := translateWithLLMStream(a.ctx, cfg, req, func(delta string) {
+			pending.WriteString(delta)
+			// Limit UI event traffic while still showing the first token immediately.
+			if lastEmit.IsZero() || time.Since(lastEmit) >= 35*time.Millisecond {
+				emitPending()
+			}
+		})
+		if err == nil {
+			emitPending()
+		}
 		if err != nil {
 			log.Printf("LLM translation failed; model=%s error=%v", cfg.LLMModel, err)
 			return TranslateResult{}, err
