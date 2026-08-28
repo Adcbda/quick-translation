@@ -9,6 +9,7 @@ export namespace main {
 	    clipboardEnabled: boolean;
 	    quickOpenEnabled: boolean;
 	    quickOpenShortcut: string;
+	    closeToTray: boolean;
 	    alwaysOnTop: boolean;
 	    minimalMode: boolean;
 	    darkMode: boolean;
@@ -29,6 +30,7 @@ export namespace main {
 	        this.clipboardEnabled = source["clipboardEnabled"];
 	        this.quickOpenEnabled = source["quickOpenEnabled"];
 	        this.quickOpenShortcut = source["quickOpenShortcut"];
+	        this.closeToTray = source["closeToTray"];
 	        this.alwaysOnTop = source["alwaysOnTop"];
 	        this.minimalMode = source["minimalMode"];
 	        this.darkMode = source["darkMode"];

@@ -23,6 +23,7 @@ type Config struct {
 	ClipboardEnabled  bool   `json:"clipboardEnabled"`
 	QuickOpenEnabled  bool   `json:"quickOpenEnabled"`
 	QuickOpenShortcut string `json:"quickOpenShortcut"`
+	CloseToTray       bool   `json:"closeToTray"`
 	AlwaysOnTop       bool   `json:"alwaysOnTop"`
 	MinimalMode       bool   `json:"minimalMode"`
 	DarkMode          bool   `json:"darkMode"`

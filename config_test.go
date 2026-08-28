@@ -44,6 +44,7 @@ func TestConfigStorePersistsAppearanceSettings(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.MinimalMode = true
 	cfg.DarkMode = true
+	cfg.CloseToTray = true
 
 	if err := store.save(cfg); err != nil {
 		t.Fatalf("save config: %v", err)
@@ -61,6 +62,9 @@ func TestConfigStorePersistsAppearanceSettings(t *testing.T) {
 	}
 	if !saved.DarkMode {
 		t.Fatal("dark mode was not persisted")
+	}
+	if !saved.CloseToTray {
+		t.Fatal("close-to-tray setting was not persisted")
 	}
 }
 

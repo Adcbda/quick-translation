@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -63,6 +64,8 @@ type App struct {
 	local          *localModelService
 	clipboard      *clipboardListener
 	quickOpen      *globalShortcutListener
+	tray           *systemTray
+	quitting       atomic.Bool
 	mu             sync.Mutex
 	downloadMu     sync.RWMutex
 	downloadStatus ModelDownloadStatus
@@ -113,9 +116,31 @@ func (a *App) startup(ctx context.Context) {
 			runtime.EventsEmit(ctx, "quick-open-error", err.Error())
 		}
 	}
+	if cfg.CloseToTray {
+		if err := a.replaceSystemTray(true); err != nil {
+			log.Printf("system tray startup failed: %v", err)
+			runtime.EventsEmit(ctx, "tray-error", err.Error())
+		}
+	}
 	if cfg.ClipboardEnabled {
 		a.startClipboardMonitor()
 	}
+}
+
+func (a *App) beforeClose(ctx context.Context) bool {
+	if a.quitting.Load() || a.store == nil || !a.store.get().CloseToTray {
+		return false
+	}
+	a.mu.Lock()
+	trayReady := a.tray != nil
+	a.mu.Unlock()
+	if !trayReady {
+		log.Printf("close-to-tray skipped because the system tray is unavailable")
+		return false
+	}
+	log.Printf("application window hidden to system tray")
+	runtime.WindowHide(ctx)
+	return true
 }
 
 func (a *App) shutdown(context.Context) {
@@ -123,14 +148,19 @@ func (a *App) shutdown(context.Context) {
 	a.mu.Lock()
 	clipboard := a.clipboard
 	quickOpen := a.quickOpen
+	tray := a.tray
 	a.clipboard = nil
 	a.quickOpen = nil
+	a.tray = nil
 	a.mu.Unlock()
 	if clipboard != nil {
 		clipboard.Stop()
 	}
 	if quickOpen != nil {
 		quickOpen.Stop()
+	}
+	if tray != nil {
+		tray.Stop()
 	}
 	if a.local != nil {
 		a.local.Close()
@@ -166,8 +196,19 @@ func (a *App) SaveConfig(cfg Config) error {
 	cfg.QuickOpenShortcut = binding.canonical
 	previous := a.store.get()
 	shortcutChanged := previous.QuickOpenEnabled != cfg.QuickOpenEnabled || previous.QuickOpenShortcut != cfg.QuickOpenShortcut
+	trayChanged := previous.CloseToTray != cfg.CloseToTray
 	if shortcutChanged {
 		if err := a.replaceQuickOpenShortcut(cfg.QuickOpenEnabled, cfg.QuickOpenShortcut); err != nil {
+			return err
+		}
+	}
+	if trayChanged {
+		if err := a.replaceSystemTray(cfg.CloseToTray); err != nil {
+			if shortcutChanged {
+				if rollbackErr := a.replaceQuickOpenShortcut(previous.QuickOpenEnabled, previous.QuickOpenShortcut); rollbackErr != nil {
+					log.Printf("restoring global shortcut after tray failure failed: %v", rollbackErr)
+				}
+			}
 			return err
 		}
 	}
@@ -177,11 +218,16 @@ func (a *App) SaveConfig(cfg Config) error {
 				log.Printf("restoring global shortcut after save failure failed: %v", rollbackErr)
 			}
 		}
+		if trayChanged {
+			if rollbackErr := a.replaceSystemTray(previous.CloseToTray); rollbackErr != nil {
+				log.Printf("restoring system tray after save failure failed: %v", rollbackErr)
+			}
+		}
 		log.Printf("saving configuration failed: %v", err)
 		return err
 	}
 	cfg = a.store.get()
-	log.Printf("configuration saved; provider=%s local_model=%s clipboard=%t quick_open=%t shortcut=%s always_on_top=%t", cfg.Provider, cfg.LocalModel, cfg.ClipboardEnabled, cfg.QuickOpenEnabled, cfg.QuickOpenShortcut, cfg.AlwaysOnTop)
+	log.Printf("configuration saved; provider=%s local_model=%s clipboard=%t quick_open=%t shortcut=%s close_to_tray=%t always_on_top=%t", cfg.Provider, cfg.LocalModel, cfg.ClipboardEnabled, cfg.QuickOpenEnabled, cfg.QuickOpenShortcut, cfg.CloseToTray, cfg.AlwaysOnTop)
 	if a.ctx != nil {
 		runtime.WindowSetAlwaysOnTop(a.ctx, cfg.AlwaysOnTop)
 	}
@@ -479,6 +525,42 @@ func (a *App) replaceQuickOpenShortcut(enabled bool, shortcut string) error {
 		previous.Stop()
 	}
 	return nil
+}
+
+func (a *App) replaceSystemTray(enabled bool) error {
+	a.mu.Lock()
+	current := a.tray
+	a.mu.Unlock()
+	if enabled && current != nil {
+		return nil
+	}
+
+	var replacement *systemTray
+	if enabled {
+		tray, err := newSystemTray(a.openTranslationWindow, a.quitApplication)
+		if err != nil {
+			return err
+		}
+		replacement = tray
+	}
+
+	a.mu.Lock()
+	previous := a.tray
+	a.tray = replacement
+	a.mu.Unlock()
+	if previous != nil {
+		previous.Stop()
+	}
+	return nil
+}
+
+func (a *App) quitApplication() {
+	if a.ctx == nil {
+		return
+	}
+	log.Printf("application exit requested from system tray")
+	a.quitting.Store(true)
+	runtime.Quit(a.ctx)
 }
 
 func (a *App) openTranslationWindow() {

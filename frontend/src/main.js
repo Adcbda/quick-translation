@@ -94,6 +94,7 @@ function applyConfig() {
   $("#llmApiKey").value = cfg.llmApiKey || "";
   $("#clipboardEnabled").checked = Boolean(cfg.clipboardEnabled);
   $("#quickOpenEnabled").checked = Boolean(cfg.quickOpenEnabled);
+  $("#closeToTray").checked = Boolean(cfg.closeToTray);
   $("#topmostButton").classList.toggle("active", Boolean(cfg.alwaysOnTop));
   applyTheme();
   applyMinimalMode();
@@ -159,6 +160,7 @@ function wireInteractions() {
   $("#minimalMode").addEventListener("change", toggleMinimalMode);
   $("#darkMode").addEventListener("change", previewDarkMode);
   $("#quickOpenEnabled").addEventListener("change", previewQuickOpenEnabled);
+  $("#closeToTray").addEventListener("change", previewCloseToTray);
   $("#shortcutRecorder").addEventListener("click", startShortcutCapture);
   $("#resetShortcut").addEventListener("click", resetQuickOpenShortcut);
   document.addEventListener("keydown", captureShortcutKey, true);
@@ -177,6 +179,10 @@ function previewQuickOpenEnabled(event) {
   if (state.capturingShortcut) finishShortcutCapture();
   renderShortcutControls();
   $("#saveHint").textContent = event.currentTarget.checked ? "快捷键唤起已开启，请保存设置" : "快捷键唤起已关闭，请保存设置";
+}
+
+function previewCloseToTray(event) {
+  $("#saveHint").textContent = event.currentTarget.checked ? "关闭到托盘已开启，请保存设置" : "关闭时退出程序，请保存设置";
 }
 
 function startShortcutCapture() {
@@ -695,6 +701,7 @@ async function saveSettings() {
   state.config.llmApiKey = $("#llmApiKey").value.trim();
   state.config.clipboardEnabled = $("#clipboardEnabled").checked;
   state.config.quickOpenEnabled = $("#quickOpenEnabled").checked;
+  state.config.closeToTray = $("#closeToTray").checked;
   state.config.darkMode = $("#darkMode").checked;
   state.config.sourceLanguage = $("#sourceLanguage").value;
   state.config.targetLanguage = $("#targetLanguage").value;
