@@ -19,6 +19,8 @@ const state = {
   models: [],
   translating: false,
   activeTranslationID: "",
+  lastTranslationSignature: "",
+  pendingBlurTranslation: null,
   queuedClipboardText: "",
   result: "",
   modelDownload: { model: "", status: "idle", message: "", progress: -1 },
@@ -145,6 +147,7 @@ function renderShortcutControls() {
 function wireInteractions() {
   $$(".nav-item").forEach((button) => button.addEventListener("click", () => showView(button.dataset.view)));
   $("#sourceText").addEventListener("input", updateCharacterCount);
+  $("#sourceText").addEventListener("blur", translateStableInput);
   $("#sourceText").addEventListener("keydown", (event) => {
     if (event.key === "Enter" && event.ctrlKey) {
       event.preventDefault();
@@ -496,6 +499,28 @@ function updateCharacterCount() {
   $("#characterCount").textContent = `${[...$("#sourceText").value].length.toLocaleString()} / 12,000`;
 }
 
+function translationSignature(text) {
+  return [$("#sourceLanguage").value, $("#targetLanguage").value, text].join("\u0000");
+}
+
+function translateStableInput() {
+  const text = $("#sourceText").value.trim();
+  if (!text) return;
+
+  const candidate = { text, signature: translationSignature(text) };
+  setTimeout(() => {
+    const currentText = $("#sourceText").value.trim();
+    if (!currentText || currentText !== candidate.text || translationSignature(currentText) !== candidate.signature) return;
+    if (state.lastTranslationSignature === candidate.signature) return;
+    if (state.translating) {
+      state.pendingBlurTranslation = candidate;
+      return;
+    }
+    state.pendingBlurTranslation = null;
+    translate();
+  }, 0);
+}
+
 function clearResult() {
   state.result = "";
   const result = $("#resultText");
@@ -519,6 +544,7 @@ async function translate() {
     return;
   }
   state.translating = true;
+  state.lastTranslationSignature = translationSignature(text);
   state.activeTranslationID = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
   state.result = "";
   $("#translateButton").classList.add("loading");
@@ -563,6 +589,15 @@ async function translate() {
       const nextText = state.queuedClipboardText;
       state.queuedClipboardText = "";
       setTimeout(() => translateClipboardText(nextText), 0);
+    } else if (state.pendingBlurTranslation) {
+      const candidate = state.pendingBlurTranslation;
+      state.pendingBlurTranslation = null;
+      setTimeout(() => {
+        const currentText = $("#sourceText").value.trim();
+        if (currentText === candidate.text && translationSignature(currentText) === candidate.signature) {
+          translateStableInput();
+        }
+      }, 0);
     }
   }
 }
